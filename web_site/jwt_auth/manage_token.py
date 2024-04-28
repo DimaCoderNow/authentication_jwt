@@ -1,6 +1,7 @@
 import uuid
 import jwt
 import datetime
+from constance import config
 
 from rest_framework.exceptions import AuthenticationFailed
 
@@ -24,7 +25,7 @@ def decode_token(token):
 def create_access_token(user):
     payload = {
         'id': user.id,
-        'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=300),
+        'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=config.ACCESS_TOKEN_EXPIRATION_TIME),
         'iat': datetime.datetime.now(datetime.UTC)
     }
     token = jwt.encode(payload, 'secret', algorithm='HS256')
@@ -47,12 +48,12 @@ def get_access_by_refresh(refresh_token):
 
 
 def create_refresh_token(user):
-    expiration_date = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=30)
+    exp_date = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=config.REFRESH_TOKEN_EXPIRATION_TIME)
     token = str(uuid.uuid4())
     RefreshToken.objects.create(
         user=user,
         token=token,
-        expiration_date=expiration_date,
+        expiration_date=exp_date,
     )
     return token
 
