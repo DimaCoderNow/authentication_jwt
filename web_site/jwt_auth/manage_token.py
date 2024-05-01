@@ -8,6 +8,15 @@ from rest_framework.exceptions import AuthenticationFailed
 from .models import RefreshToken
 
 
+def _get_expiration_date(exp_time, days=False):
+    '''
+        By default, the delta is calculated in seconds
+    '''
+    if days:
+        return datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=exp_time)
+    return datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=exp_time)
+
+
 def decode_token(token):
     if not token:
         raise AuthenticationFailed('Unauthenticated!')
@@ -25,7 +34,7 @@ def decode_token(token):
 def create_access_token(user):
     payload = {
         'id': user.id,
-        'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=config.ACCESS_TOKEN_EXPIRATION_TIME),
+        'exp': _get_expiration_date(config.ACCESS_TOKEN_EXPIRATION_TIME),
         'iat': datetime.datetime.now(datetime.UTC)
     }
     token = jwt.encode(payload, 'secret', algorithm='HS256')
@@ -43,12 +52,18 @@ def get_access_by_refresh(refresh_token):
             jwt_refresh_token.token
         )
         raise AuthenticationFailed('Refresh token has expired')
+
+    exp_date = _get_expiration_date(config.REFRESH_TOKEN_EXPIRATION_TIME, days=True)
+    jwt_refresh_token.expiration_date = exp_date
+    jwt_refresh_token.save()
+
     user = jwt_refresh_token.user
+
     return create_access_token(user)
 
 
 def create_refresh_token(user):
-    exp_date = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=config.REFRESH_TOKEN_EXPIRATION_TIME)
+    exp_date = _get_expiration_date(config.REFRESH_TOKEN_EXPIRATION_TIME, days=True)
     token = str(uuid.uuid4())
     RefreshToken.objects.create(
         user=user,
