@@ -4,10 +4,12 @@ from .views import (
     LoginView,
     UserView,
     LogoutView,
-    RefreshView
+    RefreshView,
+    APIRootView,
 )
 
 urlpatterns = [
+    path('', APIRootView.as_view(), name='api-root'),
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('me/', UserView.as_view(), name='me'),

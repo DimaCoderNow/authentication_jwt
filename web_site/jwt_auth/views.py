@@ -1,4 +1,5 @@
 import jwt
+from django.urls import reverse
 from rest_framework.exceptions import ValidationError
 
 from rest_framework.views import APIView
@@ -7,6 +8,23 @@ from .serializers import UserSerializer, UserReadWriteSerializer
 
 from .manage_token import *
 from .manage_user import *
+
+
+class APIRootView(APIView):
+    """
+    Display available API endpoints.
+    """
+    def get(self, request):
+        data = {
+            'register [POST]': reverse('register'),
+            'login [POST]': reverse('login'),
+            'me [GET]': reverse('me'),
+            'me [PUT]': reverse('me'),
+            'refresh [POST]': reverse('refresh'),
+            'logout [POST]': reverse('logout'),
+        }
+
+        return Response(data)
 
 
 class RegisterView(APIView):
